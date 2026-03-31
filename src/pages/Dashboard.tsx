@@ -6,7 +6,7 @@ import { TaskCard } from '@/components/TaskCard';
 import { TaskDialog } from '@/components/TaskDialog';
 import { ProgressBar } from '@/components/ProgressBar';
 import { CalendarView } from '@/components/CalendarView';
-import { getRandomQuote } from '@/lib/store';
+import { getRandomQuote } from '@/lib/constants';
 import { Search, LogOut, Plus, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
