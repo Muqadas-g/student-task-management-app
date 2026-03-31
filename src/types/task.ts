@@ -7,10 +7,5 @@ export interface Task {
   category: TaskCategory;
   deadline: string;
   completed: boolean;
-  createdAt: string;
-}
-
-export interface User {
-  name: string;
-  email: string;
+  created_at: string;
 }
