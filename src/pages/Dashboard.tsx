@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useApp } from '@/context/AppContext';
-import { Task, TaskCategory } from '@/types/task';
+import { Task, TaskCategory, useApp as useAppTypes } from '@/context/AppContext';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { TaskCard } from '@/components/TaskCard';
 import { TaskDialog } from '@/components/TaskDialog';
