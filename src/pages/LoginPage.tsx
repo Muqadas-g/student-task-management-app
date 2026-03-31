@@ -2,30 +2,36 @@ import React, { useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { toast } from 'sonner';
 
 export const LoginPage: React.FC = () => {
-  const { login } = useApp();
+  const { login, signup } = useApp();
   const [isSignup, setIsSignup] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSignup && name && email && password) {
-      login({ name, email });
-    } else if (!isSignup && email && password) {
-      const savedName = localStorage.getItem('prodflow_signup_name') || 'Student';
-      login({ name: savedName, email });
-    }
-    if (isSignup && name) {
-      localStorage.setItem('prodflow_signup_name', name);
+    setSubmitting(true);
+    try {
+      if (isSignup) {
+        await signup(email, password, name);
+        toast.success('Account created! Check your email to confirm 🎉');
+      } else {
+        await login(email, password);
+        toast.success('Welcome back! 💪');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Something went wrong');
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
     <div className="min-h-screen gradient-bg flex items-center justify-center p-4">
-      {/* Decorative blobs */}
       <div className="fixed top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-primary/10 blur-3xl pointer-events-none" />
       <div className="fixed bottom-[-10%] right-[-10%] w-[40vw] h-[40vw] rounded-full bg-accent/10 blur-3xl pointer-events-none" />
       <div className="fixed top-[30%] right-[10%] w-[30vw] h-[30vw] rounded-full bg-secondary/10 blur-3xl pointer-events-none" />
@@ -74,10 +80,11 @@ export const LoginPage: React.FC = () => {
                 onChange={e => setPassword(e.target.value)}
                 className="h-12 rounded-xl bg-muted/50 border-border/50 focus:border-primary"
                 required
+                minLength={6}
               />
             </div>
-            <Button type="submit" variant="gradient" size="lg" className="w-full mt-2">
-              {isSignup ? 'Sign Up 🎉' : 'Log In →'}
+            <Button type="submit" variant="gradient" size="lg" className="w-full mt-2" disabled={submitting}>
+              {submitting ? 'Please wait...' : isSignup ? 'Sign Up 🎉' : 'Log In →'}
             </Button>
           </form>
 
