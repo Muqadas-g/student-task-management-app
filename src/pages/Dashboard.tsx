@@ -63,7 +63,7 @@ export const Dashboard: React.FC = () => {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold font-heading text-foreground">
-              {greeting()}, <span className="gradient-text">{user?.name}</span> 👋
+              {greeting()}, <span className="gradient-text">{user?.user_metadata?.display_name || 'Student'}</span> 👋
             </h1>
             <p className="text-sm text-muted-foreground mt-0.5">{quote}</p>
           </div>
