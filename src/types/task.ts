@@ -8,9 +8,11 @@ export interface Task {
   deadline: string;
   completed: boolean;
   createdAt: string;
+  user_id?: string;
 }
 
 export interface User {
+  id: string;
   name: string;
   email: string;
 }
