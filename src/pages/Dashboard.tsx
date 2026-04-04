@@ -189,7 +189,7 @@ export const Dashboard: React.FC = () => {
     }
   };
 
-  const deleteTask = async (taskId: number) => {
+  const deleteTask = async (taskId: string) => {
     if (userRole !== 'admin') {
       toast.error('❌ Only Admin can delete tasks!');
       return;
