@@ -14,8 +14,104 @@ export type Database = {
   }
   public: {
     Tables: {
+      messages: {
+        Row: {
+          created_at: string
+          id: number
+          is_read: boolean
+          message: string
+          receiver_id: string
+          sender_id: string
+          sender_name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: never
+          is_read?: boolean
+          message: string
+          receiver_id: string
+          sender_id: string
+          sender_name: string
+        }
+        Update: {
+          created_at?: string
+          id?: never
+          is_read?: boolean
+          message?: string
+          receiver_id?: string
+          sender_id?: string
+          sender_name?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: number
+          is_read: boolean
+          message: string
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: never
+          is_read?: boolean
+          message: string
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: never
+          is_read?: boolean
+          message?: string
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      task_comments: {
+        Row: {
+          created_at: string
+          id: number
+          message: string
+          task_id: string
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: never
+          message: string
+          task_id: string
+          user_id: string
+          user_name: string
+        }
+        Update: {
+          created_at?: string
+          id?: never
+          message?: string
+          task_id?: string
+          user_id?: string
+          user_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_comments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tasks: {
         Row: {
+          assigned_to: string | null
           category: Database["public"]["Enums"]["task_category"]
           completed: boolean
           created_at: string
@@ -30,6 +126,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          assigned_to?: string | null
           category?: Database["public"]["Enums"]["task_category"]
           completed?: boolean
           created_at?: string
@@ -44,6 +141,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          assigned_to?: string | null
           category?: Database["public"]["Enums"]["task_category"]
           completed?: boolean
           created_at?: string
@@ -57,11 +155,20 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tasks_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       users: {
         Row: {
           created_at: string
+          department: string | null
           email: string
           full_name: string | null
           id: string
@@ -69,6 +176,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          department?: string | null
           email: string
           full_name?: string | null
           id: string
@@ -76,6 +184,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          department?: string | null
           email?: string
           full_name?: string | null
           id?: string
