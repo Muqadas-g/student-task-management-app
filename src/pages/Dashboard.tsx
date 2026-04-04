@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface Task {
-  id: number;
+  id: string;
   title: string;
   description: string;
   project_link: string;
