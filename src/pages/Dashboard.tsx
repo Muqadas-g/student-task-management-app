@@ -175,7 +175,7 @@ export const Dashboard: React.FC = () => {
     }
   };
 
-  const updateTaskStatus = async (taskId: number, newStatus: string) => {
+  const updateTaskStatus = async (taskId: string, newStatus: string) => {
     const { error } = await supabase
       .from('tasks')
       .update({ status: newStatus })
