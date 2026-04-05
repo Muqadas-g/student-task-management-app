@@ -74,6 +74,36 @@ export type Database = {
         }
         Relationships: []
       }
+      projects: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: number
+          live_link: string | null
+          name: string
+          tech_stack: string[] | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: never
+          live_link?: string | null
+          name: string
+          tech_stack?: string[] | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: never
+          live_link?: string | null
+          name?: string
+          tech_stack?: string[] | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       task_comments: {
         Row: {
           created_at: string
