@@ -1,14 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-);
-
 interface Task {
-  id: number;
+  id: string;
   title: string;
   description: string;
   project_link: string;
@@ -45,7 +40,7 @@ export const Dashboard: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [user, setUser] = useState<User | null>(null);
-  const [userRole, setUserRole] = useState<string>('member');
+  const [userRole, setUserRole] = useState('member');
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'tasks' | 'projects' | 'analytics'>('tasks');
   
@@ -154,7 +149,7 @@ export const Dashboard: React.FC = () => {
         .single();
 
       if (profile) {
-        setUser(profile);
+        setUser(profile as unknown as User);
         setUserRole(profile.role || 'member');
       }
 
@@ -170,7 +165,7 @@ export const Dashboard: React.FC = () => {
 
   const loadAllUsers = async () => {
     const { data } = await supabase.from('users').select('*');
-    if (data) setUsers(data);
+    if (data) setUsers(data as unknown as User[]);
   };
 
   // ========== TASKS CRUD ==========
@@ -238,6 +233,7 @@ export const Dashboard: React.FC = () => {
         project_link: newTask.project_link || null,
         priority: newTask.priority,
         due_date: newTask.due_date || null,
+        deadline: newTask.due_date || new Date().toISOString(),
         assigned_to: newTask.assigned_to || null,
         status: 'pending',
         user_id: user?.id
@@ -253,7 +249,7 @@ export const Dashboard: React.FC = () => {
     }
   };
 
-  const updateTaskStatus = async (taskId: number, newStatus: string) => {
+  const updateTaskStatus = async (taskId: string, newStatus: string) => {
     const { error } = await supabase
       .from('tasks')
       .update({ status: newStatus })
@@ -267,7 +263,7 @@ export const Dashboard: React.FC = () => {
     }
   };
 
-  const deleteTask = async (taskId: number) => {
+  const deleteTask = async (taskId: string) => {
     if (userRole !== 'admin') {
       toast.error('❌ Only Admin can delete tasks!');
       return;
@@ -285,12 +281,12 @@ export const Dashboard: React.FC = () => {
 
   // ========== PROJECTS CRUD ==========
   const loadProjects = async () => {
-    let query = supabase.from('projects').select('*');
+    let query = supabase.from('projects' as any).select('*');
     if (userRole !== 'admin') {
       query = query.eq('user_id', user?.id);
     }
     const { data, error } = await query.order('created_at', { ascending: false });
-    if (!error) setProjects(data || []);
+    if (!error) setProjects((data || []) as unknown as Project[]);
   };
 
   const createProject = async (e: React.FormEvent) => {
@@ -300,9 +296,9 @@ export const Dashboard: React.FC = () => {
       return;
     }
 
-    const techStackArray = newProject.tech_stack.split(',').map(t => t.trim());
+    const techStackArray = newProject.tech_stack.split(',').map(t => t.trim()).filter(Boolean);
     
-    const { error } = await supabase.from('projects').insert([
+    const { error } = await supabase.from('projects' as any).insert([
       {
         name: newProject.name,
         description: newProject.description,
@@ -310,7 +306,7 @@ export const Dashboard: React.FC = () => {
         tech_stack: techStackArray,
         user_id: user?.id
       }
-    ]);
+    ] as any);
 
     if (error) {
       toast.error('Error: ' + error.message);
@@ -328,7 +324,7 @@ export const Dashboard: React.FC = () => {
     }
     if (!confirm('Delete this project?')) return;
     
-    const { error } = await supabase.from('projects').delete().eq('id', projectId);
+    const { error } = await supabase.from('projects' as any).delete().eq('id', projectId);
     if (error) {
       toast.error('Error: ' + error.message);
     } else {
@@ -385,10 +381,11 @@ export const Dashboard: React.FC = () => {
     filtered.sort((a, b) => {
       let comparison = 0;
       switch (sortBy) {
-        case 'priority':
-          const priorityOrder = { high: 3, medium: 2, low: 1 };
-          comparison = (priorityOrder[a.priority as keyof typeof priorityOrder] || 0) - (priorityOrder[b.priority as keyof typeof priorityOrder] || 0);
+        case 'priority': {
+          const priorityOrder: Record<string, number> = { high: 3, medium: 2, low: 1 };
+          comparison = (priorityOrder[a.priority] || 0) - (priorityOrder[b.priority] || 0);
           break;
+        }
         case 'due_date':
           comparison = (a.due_date || '9999-12-31').localeCompare(b.due_date || '9999-12-31');
           break;
@@ -406,21 +403,21 @@ export const Dashboard: React.FC = () => {
 
   // ========== RENDER HELPERS ==========
   const getPriorityBadge = (priority: string) => {
-    const colors = {
+    const colors: Record<string, string> = {
       high: 'bg-red-100 text-red-700',
       medium: 'bg-yellow-100 text-yellow-700',
       low: 'bg-green-100 text-green-700'
     };
-    return `px-2 py-1 rounded-full text-xs ${colors[priority as keyof typeof colors] || colors.medium}`;
+    return `px-2 py-1 rounded-full text-xs ${colors[priority] || colors.medium}`;
   };
 
   const getStatusBadge = (status: string) => {
-    const colors = {
+    const colors: Record<string, string> = {
       completed: 'bg-green-100 text-green-700',
       'in-progress': 'bg-blue-100 text-blue-700',
       pending: 'bg-yellow-100 text-yellow-700'
     };
-    return `px-2 py-1 rounded-full text-xs ${colors[status as keyof typeof colors] || colors.pending}`;
+    return `px-2 py-1 rounded-full text-xs ${colors[status] || colors.pending}`;
   };
 
   const filteredTasks = getFilteredAndSortedTasks();
@@ -428,26 +425,25 @@ export const Dashboard: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* ========== SIDEBAR NAVIGATION ========== */}
-      <div className="flex h-screen">
+      <div className="flex">
         {/* Sidebar */}
-        <div className="w-64 bg-white shadow-md fixed h-full">
-          <div className="p-5 border-b">
-            <h1 className="text-xl font-bold">📋 Team Task Manager</h1>
-            <p className="text-sm text-gray-500 mt-1">
+        <div className="w-64 bg-white shadow-lg min-h-screen p-6 flex flex-col">
+          <div className="mb-8">
+            <h1 className="text-xl font-bold text-gray-800">📋 Team Task Manager</h1>
+            <span className={`text-xs px-2 py-1 rounded-full mt-2 inline-block ${userRole === 'admin' ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-100 text-blue-700'}`}>
               {userRole === 'admin' ? '👑 Admin' : '👤 Member'}
-            </p>
-            <p className="text-xs text-gray-400 mt-1">{user?.email}</p>
+            </span>
+            <p className="text-xs text-gray-500 mt-1">{user?.email}</p>
           </div>
           
-          <nav className="p-4 space-y-2">
+          <nav className="space-y-2 flex-1">
             <button
               onClick={() => setActiveTab('tasks')}
               className={`w-full text-left px-4 py-2 rounded-lg transition flex items-center gap-3 ${activeTab === 'tasks' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}
@@ -470,21 +466,21 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* Main Content */}
-        <div className="ml-64 flex-1 overflow-auto">
+        <div className="flex-1">
           {/* Header with Search */}
-          <div className="bg-white shadow-sm p-4 sticky top-0 z-10">
+          <div className="bg-white shadow-sm p-6">
             <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">
+              <h2 className="text-2xl font-bold text-gray-800">
                 {activeTab === 'tasks' && 'Task Manager'}
                 {activeTab === 'projects' && 'My Projects'}
                 {activeTab === 'analytics' && 'Analytics Dashboard'}
               </h2>
-              <div className="relative">
+              <div className="flex items-center gap-4">
                 <input
                   type="text"
-                  placeholder="🔍 Search tasks by title..."
+                  placeholder="🔍 Search..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={e => setSearchQuery(e.target.value)}
                   className="w-64 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -497,10 +493,10 @@ export const Dashboard: React.FC = () => {
               <>
                 {/* Filters Bar */}
                 <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-                  <div className="flex flex-wrap gap-3 items-center">
+                  <div className="flex flex-wrap gap-3">
                     <select
                       value={filters.status}
-                      onChange={(e) => setFilters({...filters, status: e.target.value})}
+                      onChange={e => setFilters({...filters, status: e.target.value})}
                       className="px-3 py-2 border rounded-lg text-sm"
                     >
                       <option value="">All Status</option>
@@ -511,7 +507,7 @@ export const Dashboard: React.FC = () => {
                     
                     <select
                       value={filters.priority}
-                      onChange={(e) => setFilters({...filters, priority: e.target.value})}
+                      onChange={e => setFilters({...filters, priority: e.target.value})}
                       className="px-3 py-2 border rounded-lg text-sm"
                     >
                       <option value="">All Priorities</option>
@@ -522,7 +518,7 @@ export const Dashboard: React.FC = () => {
                     
                     <select
                       value={filters.due_date}
-                      onChange={(e) => setFilters({...filters, due_date: e.target.value})}
+                      onChange={e => setFilters({...filters, due_date: e.target.value})}
                       className="px-3 py-2 border rounded-lg text-sm"
                     >
                       <option value="">All Dates</option>
@@ -533,7 +529,7 @@ export const Dashboard: React.FC = () => {
                     
                     <select
                       value={sortBy}
-                      onChange={(e) => setSortBy(e.target.value)}
+                      onChange={e => setSortBy(e.target.value)}
                       className="px-3 py-2 border rounded-lg text-sm"
                     >
                       <option value="due_date">Sort by Due Date</option>
@@ -556,7 +552,7 @@ export const Dashboard: React.FC = () => {
                   <form onSubmit={createTask} className="space-y-4">
                     <input
                       type="text"
-                      placeholder="Task title *"
+                      placeholder="Task Title *"
                       value={newTask.title}
                       onChange={e => setNewTask({...newTask, title: e.target.value})}
                       className="w-full p-2 border rounded-lg"
@@ -565,14 +561,14 @@ export const Dashboard: React.FC = () => {
                     
                     <input
                       type="url"
-                      placeholder="🔗 Project Link (e.g., https://your-project.netlify.app)"
+                      placeholder="🔗 Project Link (https://...)"
                       value={newTask.project_link}
                       onChange={e => setNewTask({...newTask, project_link: e.target.value})}
                       className="w-full p-2 border rounded-lg bg-gray-50"
                     />
                     
                     <textarea
-                      placeholder="Description (optional)"
+                      placeholder="Description"
                       value={newTask.description}
                       onChange={e => setNewTask({...newTask, description: e.target.value})}
                       className="w-full p-2 border rounded-lg"
