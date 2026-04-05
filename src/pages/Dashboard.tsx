@@ -233,6 +233,7 @@ export const Dashboard: React.FC = () => {
         project_link: newTask.project_link || null,
         priority: newTask.priority,
         due_date: newTask.due_date || null,
+        deadline: newTask.due_date || new Date().toISOString(),
         assigned_to: newTask.assigned_to || null,
         status: 'pending',
         user_id: user?.id
